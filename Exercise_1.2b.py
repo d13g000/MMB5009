@@ -17,14 +17,16 @@ def calculate_mean_quality(file_path):
         lines = file.readlines()  # Read all lines from the file
 
     for i in range(0, len(lines),
-                   4):  # Loop through the file in FASTQ format (4 lines per entry)
+                   4):  # Loop through the file in FASTQ format (4 lines per
+        # entry)
         quality_scores = phred33_to_quality(
             lines[i + 3].strip())  # Convert quality line to scores
         total_score += sum(quality_scores)  # Add up all quality scores
         total_bases += len(quality_scores)  # Count total bases
         sequence_count += 1  # Increment sequence count
 
-    mean_quality = total_score / total_bases if total_bases > 0 else 0  # Calculate mean quality score
+    mean_quality = total_score / total_bases if total_bases > 0 else 0
+    # Calculate mean quality score
     return mean_quality, sequence_count
 
 
@@ -48,36 +50,45 @@ def filter_fastq(file_path, mean_quality):
         sequence_mean_quality = sum(quality_scores) / len(
             quality_scores)  # Calculate mean quality score of the sequence
 
-        if sequence_mean_quality >= mean_quality:  # If sequence quality is above or equal to threshold
+        if sequence_mean_quality >= mean_quality:  # If sequence quality is
+            # above or equal to threshold
             output_lines.extend([header, sequence, plus,
                                  quality])  # Add sequence to output list
         else:
-            filtered_out_count += 1  # Increment the count of filtered out sequences
+            filtered_out_count += 1  # Increment the count of filtered out
+            # sequences
 
-    remaining_sequences = total_sequences - filtered_out_count  # Calculate remaining sequences
+    remaining_sequences = total_sequences - filtered_out_count  # Calculate
+    # remaining sequences
 
     if not output_lines:  # If no sequences remain after filtering
         print(
             "Warning: No sequences remain after filtering.")  # Notify the user
 
     output_file = file_path.replace(".fastq",
-                                    "_filtered.fastq")  # Create output file name
+                                    "_filtered.fastq")  # Create output file
+    # name
     with open(output_file, 'w') as file:  # Open the output file for writing
         file.write(
             "\n".join(output_lines) + "\n")  # Write the modified FASTQ data
 
     print(
-        f"Filtering complete. Output saved to {output_file}")  # Notify user of success
+        f"Filtering complete. Output saved to {output_file}")  # Notify user
+    # of success
     print(
-        f"Total sequences in input file: {total_sequences}")  # Print total sequences before filtering
+        f"Total sequences in input file: {total_sequences}")  # Print total
+    # sequences before filtering
     print(
-        f"Sequences removed: {filtered_out_count}")  # Print number of sequences filtered out
+        f"Sequences removed: {filtered_out_count}")  # Print number of
+    # sequences filtered out
     print(
-        f"Sequences remaining in output file: {remaining_sequences}")  # Print number of sequences in filtered file
+        f"Sequences remaining in output file: {remaining_sequences}")  #
+    # Print number of sequences in filtered file
 
 
 if __name__ == "__main__":  # Ensure script runs only when executed directly
-    if len(sys.argv) != 2:  # Check if the correct number of arguments are provided
+    if len(sys.argv) != 2:  # Check if the correct number of arguments are
+        # provided
         print(
             "Usage: python script.py <input_file>")  # Print usage instructions
         sys.exit(1)  # Exit script with an error
@@ -87,6 +98,7 @@ if __name__ == "__main__":  # Ensure script runs only when executed directly
     mean_quality, total_sequences = calculate_mean_quality(
         input_file)  # Calculate mean quality score and sequence count
     print(
-        f"Calculated mean quality score: {mean_quality:.2f}")  # Print calculated mean quality score
+        f"Calculated mean quality score: {mean_quality:.2f}")  # Print
+    # calculated mean quality score
     filter_fastq(input_file,
                  mean_quality)  # Call function to process the FASTQ file
