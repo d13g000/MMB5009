@@ -10,10 +10,12 @@ def trim_sequence(sequence, mode, n):
                       :-n] if n > 0 else sequence  # Remove the last n bases
     elif mode == "both":  # If trimming from both ends
         trimmed_seq = sequence[
-                      n:-n] if n > 0 else sequence  # Remove n bases from both ends
+                      n:-n] if n > 0 else sequence  # Remove n bases from
+        # both ends
     else:
         print(
-            "Invalid mode. Use 'start', 'end', or 'both'.")  # Handle invalid mode input
+            "Invalid mode. Use 'start', 'end', or 'both'.")  # Handle invalid
+        # mode input
         sys.exit(1)  # Exit the script with an error
 
     return trimmed_seq  # Return the trimmed sequence
@@ -28,41 +30,49 @@ def process_fastq(file_path, mode, n):
 
         output_lines = []  # List to store the modified FASTQ lines
         for i in range(0, len(lines),
-                       4):  # Loop through the file in FASTQ format (4 lines per entry)
+                       4):  # Loop through the file in FASTQ format (4 lines
+            # per entry)
             header = lines[i].strip()  # First line: Sequence identifier
             sequence = lines[i + 1].strip()  # Second line: DNA sequence
             plus = lines[i + 2].strip()  # Third line: Separator (+)
             quality = lines[i + 3].strip()  # Fourth line: Quality scores
 
             trimmed_seq = trim_sequence(sequence, mode,
-                                        n)  # Trim the sequence based on the given mode
+                                        n)  # Trim the sequence based on the
+            # given mode
             trimmed_qual = trim_sequence(quality, mode,
                                          n)  # Trim the quality scores similarly
 
             if not trimmed_seq:  # If trimming removes the entire sequence
                 print(
-                    f"Warning: Sequence at {header} has been completely removed.")  # Warn the user
+                    f"Warning: Sequence at {header} has been completely "
+                    f"removed.")  # Warn the user
                 continue  # Skip writing this entry to the output file
 
             output_lines.extend([header, trimmed_seq, plus,
-                                 trimmed_qual])  # Add trimmed entry to output list
+                                 trimmed_qual])  # Add trimmed entry to
+            # output list
 
         output_file = file_path.replace(".fastq",
-                                        "_trimmed.fastq")  # Create output file name
+                                        "_trimmed.fastq")  # Create output
+        # file name
         with open(output_file, 'w') as file:  # Open the output file for writing
             file.write(
                 "\n".join(output_lines) + "\n")  # Write the modified FASTQ data
 
         print(
-            f"Trimming complete. Output saved to {output_file}")  # Notify user of success
+            f"Trimming complete. Output saved to {output_file}")  # Notify
+        # user of success
     except Exception as e:
         print(f"Error: {e}")  # Print any errors that occur during processing
 
 
 if __name__ == "__main__":  # Ensure script runs only when executed directly
-    if len(sys.argv) != 4:  # Check if the correct number of arguments are provided
+    if len(sys.argv) != 4:  # Check if the correct number of arguments are
+        # provided
         print(
-            "Usage: python script.py <input_file> <mode> <n>")  # Print usage instructions
+            "Usage: python script.py <input_file> <mode> <n>")  # Print usage
+        # instructions
         print("<mode>: 'start', 'end', or 'both'")  # Explain mode options
         sys.exit(1)  # Exit script with an error
 
