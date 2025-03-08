@@ -40,7 +40,7 @@ def process_fastq(file_path, mode, n):
             trimmed_seq = trim_sequence(sequence, mode,
                                         n)  # Trim the sequence based on the
             # given mode
-            trimmed_qual = trim_sequence(quality, mode,
+            trimmed_quality = trim_sequence(quality, mode,
                                          n)  # Trim the quality scores similarly
 
             if not trimmed_seq:  # If trimming removes the entire sequence
@@ -50,7 +50,7 @@ def process_fastq(file_path, mode, n):
                 continue  # Skip writing this entry to the output file
 
             output_lines.extend([header, trimmed_seq, plus,
-                                 trimmed_qual])  # Add trimmed entry to
+                                 trimmed_quality])  # Add trimmed entry to
             # output list
 
         output_file = file_path.replace(".fastq",
