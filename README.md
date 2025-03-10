@@ -1,6 +1,6 @@
 # MB5009
 
-**Exercise_1.2a**
+### **Exercise_1.2a**
 
 This script trims DNA sequences and their corresponding quality scores in a FASTQ file. 
 Users can specify whether to trim bases from the start, end, or both ends of each sequence.
@@ -24,7 +24,7 @@ To trim 5 bases from the start of sequences in some_reads_1.fastq:
 The script creates a new FASTQ file named <input_file>_trimmed.fastq containing the trimmed sequences.
 
 
-**Exercise_1.2b**
+### **Exercise_1.2b**
 
 This script filters out sequences in a FASTQ file based on a user-provided mean quality score threshold.
 
