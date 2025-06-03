@@ -1,5 +1,5 @@
 """
-clean_msdata_script.py
+clean_msdata.py
 
 This script reads an Excel file containing mass spectrometry (MS) data and
 applies the following filters:
@@ -20,7 +20,7 @@ Finally, the cleaned DataFrame (only rows meeting all criteria, plus the new
 "Abundance Ratio Flag" column) is written to the specified output CSV file.
 
 Usage:
-    python3 clean_msdata_script.py input.xlsx output.csv
+    python3 clean_msdata.py input.xlsx output.csv
 """
 
 import sys
