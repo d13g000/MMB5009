@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 annotate_to_fasta.py
 
