@@ -28,7 +28,7 @@ Reads a filtered MS‐data CSV and produces a new CSV with these columns:
   - PSMs: copied from “# PSMs”
 
 Usage:
-    python generate_annotated_csv.py input.csv output.csv
+    python3 generate_annotated_csv.py input.csv output.csv
     (where input.py is the name of the CSV file that is going to be
     read and output.csv is the desired name of the annotated CSV file
     generated.)
