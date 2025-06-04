@@ -1,7 +1,7 @@
 # MMB5009 Lectures
 
-## Topic 1 - Sequencing and QC
-### **Exercise_1.2a**
+### Topic 1 - Sequencing and QC
+#### **Exercise_1.2a**
 
 This script trims DNA sequences and their corresponding quality scores in a FASTQ file. 
 Users can specify whether to trim bases from the start, end, or both ends of each sequence.
@@ -25,7 +25,7 @@ To trim 5 bases from the start of sequences in some_reads_1.fastq:
 The script creates a new FASTQ file named <input_file>_trimmed.fastq containing the trimmed sequences.
 
 
-### **Exercise_1.2b**
+#### **Exercise_1.2b**
 
 This script filters out sequences in a FASTQ file based on a user-provided mean quality score threshold.
 
@@ -55,7 +55,7 @@ It also displays statistics on the number of sequences removed and retained.
 ## Practical Task
 
 ### Filtering MS Data
-### clean_msdata.py
+#### clean_msdata.py
 
 This script reads an Excel file containing mass spectrometry (MS) data and applies the following filters:
 1. Maintains only rows where the Modifications column contains at least one 
@@ -97,7 +97,7 @@ row is labelled either "High" or "Medium" according to its abundance ratio.
 
 
 ### Annotate Peptides using UniProt
-### annotate_to_fasta.py
+#### annotate_to_fasta.py
 
 This script reads a filtered CSV (produced by clean_msdata.py) and, for each row:
 1. Fetches the full UniProt sequence for the accession number in the Master 
@@ -149,7 +149,7 @@ Where:
 
 
 ### Generate Annotated CSV
-### generate_annotated_csv.py
+#### generate_annotated_csv.py
 
 This script reads the same filtered CSV (from clean_msdata.py) and produces 
 a new CSV with the following columns - based on the researchers requirements:
