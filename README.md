@@ -155,11 +155,11 @@ This script reads the same filtered CSV (from clean_msdata.py) and produces
 a new CSV with the following columns - based on the researchers requirements:
 
 1. Control/Cancer Sample Peptide: a multiline field showing
-    `Control :
-    <control peptide sequence>`
+    `Control :`
+    `<control peptide sequence>`
     
-    `Cancer :
-    <cancer peptide sequence>`
+    `Cancer :`
+    `<cancer peptide sequence>`
     control peptide sequence: extracted from Annotated Sequence column
     cancer peptide sequence: the same sequence with all methyl sites inserted as <MeX> (no count)
 2. Modification (and which amino acid is methylated + Probability): the 
@@ -169,20 +169,20 @@ a new CSV with the following columns - based on the researchers requirements:
 4. Miscleavage: copied from # Missed Cleavages column.
 5. Which Sample Replicate it was identified in: a multiline field showing the 
    sample IDs applied as:
-    `Control:
-    [S1]; [S2]; [S3];`
+    `Control:`
+    `[S1]; [S2]; [S3];`
 
-    `Cancer:
-    [S4]; [S5]; [S6];`
+    `Cancer:`
+    `[S4]; [S5]; [S6];`
     where the [S#] is only included if its corresponding Found in Sample: 
    [S#] column value ≠ “Not Found.” (if not found the sample number is not 
    included)
 6. Abundance: a multiline field showing:
-   `Control:
-   <Abundances (Grouped): Healthy>`
+   `Control:`
+   `<Abundances (Grouped): Healthy>`
 
-    `Cancer:
-    <Abundances (Grouped): Cancer>`
+    `Cancer:`
+    `<Abundances (Grouped): Cancer>`
 7. PSMs: copied from # PSMs column.
 
 <ins>Usage:<ins>
