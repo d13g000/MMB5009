@@ -52,7 +52,7 @@ It also displays statistics on the number of sequences removed and retained.
 
 # MMB5009 Assignment 
 
-## Practical Task
+## 1. Practical Task
 
 ### Filtering MS Data
 #### clean_msdata.py
