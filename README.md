@@ -154,9 +154,9 @@ Where:
 This script reads the same filtered CSV (from clean_msdata.py) and produces 
 a new CSV with the following columns - based on the researchers requirements:
 
-1. Control/Cancer Sample Peptide: a multiline field showing
-    `Control :`
-    `<control peptide sequence>`
+1. Control/Cancer Sample Peptide: a multiline field showing /n
+    `Control :`/n
+    `<control peptide sequence>`/n
     
     `Cancer :`
     `<cancer peptide sequence>`
