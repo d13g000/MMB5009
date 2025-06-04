@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate_control_cancer_csv.py
+generate_annotated_csv.py
 
 Reads a filtered MS‐data CSV and produces a new CSV with these columns:
   - Peptide: a multiline field with
@@ -28,7 +28,10 @@ Reads a filtered MS‐data CSV and produces a new CSV with these columns:
   - PSMs: copied from “# PSMs”
 
 Usage:
-    python generate_control_cancer_csv.py input.csv output.csv
+    python generate_annotated_csv.py input.csv output.csv
+    (where input.py is the name of the CSV file that is going to be
+    read and output.csv is the desired name of the annotated CSV file
+    generated.)
 """
 
 import sys
@@ -56,12 +59,11 @@ def parse_methyl_mods(mod_str: str):
 
     result = []
     block_pattern = re.compile(
-        r"(\d+)x(Methyl|Dimethyl|Trimethyl)\s*\[([^\]]+)\]",
+        r"(\d+)x(Methyl|Dimethyl|Trimethyl)\s*\[([^]]+)]",
         re.IGNORECASE
     )
     for block_match in block_pattern.finditer(mod_str):
         count_str, modname, inside = block_match.groups()
-        count = int(count_str)
         mod_lc = modname.lower()
         if mod_lc == "methyl":
             tag = "Me1"
@@ -100,7 +102,7 @@ def extract_methyl_substrings(mod_str: str) -> str:
     if pd.isna(mod_str):
         return ""
     pattern = re.compile(
-        r"(\d+x(?:Methyl|Dimethyl|Trimethyl)\s*\[[^\]]+\])",
+        r"(\d+x(?:Methyl|Dimethyl|Trimethyl)\s*\[[^]]+])",
         re.IGNORECASE
     )
     matches = pattern.findall(mod_str)
@@ -123,7 +125,7 @@ def combine_sample_columns(row):
         if col.startswith("Found in Sample:"):
             val = row[col]
             if pd.notna(val) and str(val).strip() != "Not Found":
-                m = re.search(r"\[S(\d+)\]", col)
+                m = re.search(r"\[S(\d+)]", col)
                 if m:
                     idx = int(m.group(1))
                     sample_label = f"[S{idx}]"
