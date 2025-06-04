@@ -54,6 +54,17 @@ It also displays statistics on the number of sequences removed and retained.
 
 ## 1. Practical Task
 
+<ins>Dependencies:<ins>
+
+- Python 3+
+- pandas
+- requests (for annotate_to_fasta.py)
+- openpyxl (for clean_msdata.py to read Excel)
+
+Install via:
+
+`conda install pandas requests openpyxl`
+
 ### Filtering MS Data
 #### clean_msdata.py
 
@@ -223,3 +234,18 @@ A CSV named annotated_msdata.csv with columns:
     PSMs
 
 Where each row's cells contain the multiline fields as described above.
+
+
+### Example Workflow
+
+1. Filter raw MS data 
+
+`python3 clean_msdata.py Healthy vs Cancer methyl peptide training set.xlsx cleaned_msdata.csv`
+
+2. Build annotated FASTA
+
+`python3 annotate_to_fasta.py cleaned_msdata.csv annotated_cleaned_csv.fasta`
+
+3. Generate final annotated CSV
+
+`python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv`
