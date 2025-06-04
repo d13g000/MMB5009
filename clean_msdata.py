@@ -21,6 +21,8 @@ Finally, the cleaned DataFrame (only rows meeting all criteria, plus the new
 
 Usage:
     python3 clean_msdata.py input.xlsx output.csv
+    (where input.py is the name of the Excel sheet that is going to be
+    filtered and output.csv is the desired name of the CSV file generated.)
 """
 
 import sys
@@ -71,7 +73,7 @@ def has_terminal_mod(annotated_seq: str, mod_str: str) -> bool:
     peptide_length = len(peptide)
 
     # Regex to capture “[<AA><position>…]”, e.g. “[K1(100)]” or “[M13(99.4)]”
-    position_pattern = re.compile(r'\[([A-Za-z])(\d+).*?\]', re.IGNORECASE)
+    position_pattern = re.compile(r'\[([A-Za-z])(\d+).*?]', re.IGNORECASE)
 
     for match in position_pattern.finditer(mod_str):
         pos = int(match.group(2))
