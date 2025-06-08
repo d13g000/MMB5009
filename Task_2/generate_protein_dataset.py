@@ -108,6 +108,38 @@ def parse_protein_name(entry_json: dict) -> str:
     return ""
 
 
+def parse_existence_info(entry_json: dict) -> dict:
+    """
+    Extracts the protein existence level and general entry info:
+      {
+        "proteinExistence": <string>,     # e.g. "Evidence at protein level"
+        "sourceDatabase": <string>,       # e.g. "Swiss-Prot"
+        "created": <YYYY-MM-DD string>,
+        "modified": <YYYY-MM-DD string>,
+        "version": <int>
+      }
+
+    EBI JSON example:
+      "proteinExistence": "Evidence at protein level",
+      "info": {
+        "type": "Swiss-Prot",
+        "created": "2007-10-02",
+        "modified": "2025-04-09",
+        "version": 125
+      }
+    """
+    pe = entry_json.get("proteinExistence", "")
+    info = entry_json.get("info", {})
+
+    return {
+        "proteinExistence": pe,
+        "sourceDatabase":   info.get("type", ""),
+        "created":          info.get("created", ""),
+        "modified":         info.get("modified", ""),
+        "version":          info.get("version")
+    }
+
+
 def parse_accessions(entry_json: dict) -> list:
     """
     Returns a list of dicts: { "id": accession, "type": "Primary"/"Secondary" }.
@@ -456,6 +488,7 @@ def build_protein_record(accession: str) -> dict:
 
     return {
         "queryAccession": accession,
+        "proteinExistence": parse_existence_info(entry),
         "proteinName": parse_protein_name(entry),
         "accessions": parse_accessions(entry),
         "gene": parse_gene(entry),
