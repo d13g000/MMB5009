@@ -164,7 +164,6 @@ Where:
 
 This script reads the same filtered CSV (from clean_msdata.py) and produces 
 a new CSV with the following columns - based on the researchers requirements:
-
 1. Control/Cancer Sample Peptide: a multiline field showing 
 
     `Control :`
@@ -249,3 +248,82 @@ Where each row's cells contain the multiline fields as described above.
 3. Generate final annotated CSV
 
 `python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv`
+
+
+
+## 2. Generating a Dataset of Protein Data
+
+<ins>Dependencies:<ins>
+
+- Python 3+
+- pandas
+- requests
+- openpyxl
+
+Install via:
+
+`conda install pandas requests openpyxl`
+
+### Generating Protein Dataset
+#### generate_protein_dataset.py
+
+This script reads a CSV or Excel file containing UniProt accessions in a 
+specified column, deduplictes them (identifies and removes duplicate protein 
+accessions), prompts the user to process either all 
+or the first N accessions, fetches detailed annotations via the EBI Proteins 
+API, and outputs a structured JSON file.
+1. Opens and reads the CSV/Excel file, pulling values from the --column 
+   header (defaults to "Master Protein Accessions"). In doing so the script 
+   splits cells on semicolons (;), trims the whitespace, and builds a sorted 
+   list of unique accession numbers. 
+2. Lists the number of unique protein accessions found and estimates the 
+   runtime to process them all (number of accessions x delay time set by 
+   user), then allows the user to choose between processing: all, the first N 
+   (where N is entered by the user), or aborting.
+3. If the user requests processing the script fetches the protein accession 
+   number using https://www.ebi.ac.uk/proteins/api/proteins/{accession} and 
+   parses out the respective protein's:
+        - Existence and Version
+        - Protein Name
+        - Accessions (primary/secondary)
+        - Gene Name and Symbol
+        - Status (Functions, Interactions, etc.)
+        - Organism (Taxonomy number, Scientific name, Common name)
+        - Variants and Variant IDs
+        - Regions (all non-variant features)
+        - GO Annotations
+        - Associated Diseases (Texts, Evidences, Scope)
+        - Families and Domains
+        - Sequence (Canonical sequence)
+        - Isoforms (IDs, Name, Status, Sequence)
+4. Writes a JSON file.
+
+<ins>Usage:<ins>
+
+`python3 generate_protein_dataset.py \
+  --input <input_csv> \
+  --column "Master Protein Accessions" \
+  --output <output_json> \
+  [--delay 0.1]`
+
+    --input <input_csv>: Path to the CSV/Excel containing column with 
+    accession numbers (e.g. Healthy vs Cancer methyl peptide training set.csv).
+    --column: header name (defaults to "Master Protein Accessions".
+    --output <output_json>: Path where the JSON file will be saved 
+    (e.g. protein_database.json).
+    --delay: time (in seconds) between API calls (defaults to 0.1).
+
+<ins>Example:<ins>
+
+To create protein_dataset.json from Healthy vs Cancer methyl peptide 
+training set.csv:
+
+`python3 generate_protein_dataset.py \
+    --input Healthy vs Cancer methyl peptide training set.csv \
+    --column "Master Protein Accessions" \
+    --output protein_dataset.json \
+    --delay 0.1`
+
+<ins>Output:<ins>
+
+A JSON file containing a list of proteins and their respective parsed data.
