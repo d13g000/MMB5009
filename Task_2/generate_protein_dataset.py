@@ -45,16 +45,19 @@ REQUEST_URL = "https://www.ebi.ac.uk/proteins/api/proteins/"
 
 def fetch_uniprot_entry(accession: str, sleep_between: float = 0.1) -> dict:
     """
-    Fetch a UniProt entry via EBI Proteins API in JSON format for the given accession.
-    Returns the parsed JSON as a Python dict; if not found or error, returns {}.
+    Fetch a UniProt entry via EBI Proteins API in JSON format for the given
+    accession. Returns the parsed JSON as a Python dict; if not found or
+    error, returns {}.
     """
     url = REQUEST_URL + accession
     try:
-        resp = requests.get(url, headers={"Accept": "application/json"}, timeout=30)
+        resp = requests.get(url, headers={"Accept": "application/json"},
+                            timeout=30)
         if resp.status_code == 200:
             return resp.json()
         else:
-            print(f"Warning: EBI API returned status {resp.status_code} for {accession}")
+            print(f"Warning: EBI API returned status {resp.status_code} for "
+                  f" {accession}")
             return {}
     except Exception as e:
         print(f"Error fetching {accession}: {e}")
@@ -92,8 +95,9 @@ def _parse_properties(raw) -> dict:
 
 def parse_protein_name(entry_json: dict) -> str:
     """
-    Extract the recommended full name from entry_json.ebi. Fallback to first available.
-    EBI returns names under entry_json["protein"]["recommendedName"]["fullName"] or similar.
+    Extract the recommended full name from entry_json.ebi. Fallback to first
+    available. EBI returns names under entry_json["protein"][
+    "recommendedName"]["fullName"] or similar.
     """
     prot_block = entry_json.get("protein", {})
     rec = prot_block.get("recommendedName", {})
@@ -156,7 +160,8 @@ def parse_accessions(entry_json: dict) -> list:
 
 def parse_gene(entry_json: dict) -> list:
     """
-    Extract the first gene name. EBI has entry_json["genes"], each with "geneName" object.
+    Extract the first gene name. EBI has entry_json["genes"], each with
+    "geneName" object.
     """
     genes = []
     for g in entry_json.get("gene", []):
@@ -191,7 +196,8 @@ def parse_status(entry_json: dict) -> list:
       - TISSUE_SPECIFICITY   → extracts text.value and evidences
       - DISEASE              → extracts text.value
       - SIMILARITY           → extracts text.value and evidences
-      - SEQUENCE_CAUTION     → extracts conflictType, sequence, text (if present), evidences
+      - SEQUENCE_CAUTION     → extracts conflictType, sequence, text (if
+      present), evidences
 
     Returns a list like:
       [
@@ -339,7 +345,8 @@ def parse_go_annotations(entry_json: dict) -> list:
 
 def parse_associated_diseases(entry_json: dict) -> list:
     """
-    Extract associated diseases from entry_json["comments"] where category == "DISEASE".
+    Extract associated diseases from entry_json["comments"] where category
+    == "DISEASE".
     """
     diseases = []
     for com in entry_json.get("comments", []):
@@ -371,7 +378,8 @@ def parse_associated_diseases(entry_json: dict) -> list:
 
 def parse_families_and_domains(entry_json: dict) -> list:
     """
-    Extract family/domain info from entry_json["dbReferences"] for relevant sources.
+    Extract family/domain info from entry_json["dbReferences"] for relevant
+    sources.
     """
     fd_list = []
     relevant = {"Pfam", "SMART", "PROSITE", "InterPro", "SUPFAM"}
@@ -397,7 +405,8 @@ def parse_sequence(entry_json: dict) -> str:
 
 def parse_isoforms(entry_json: dict) -> list:
     """
-    Extract isoform info from entry_json["comments"] where category == "ALTERNATIVE PRODUCTS".
+    Extract isoform info from entry_json["comments"] where category ==
+    "ALTERNATIVE PRODUCTS".
     """
     iso_list = []
     for com in entry_json.get("comments", []):
@@ -484,7 +493,8 @@ def build_protein_record(accession: str) -> dict:
     """
     entry = fetch_uniprot_entry(accession)
     if not entry:
-        return {"queryAccession": accession, "error": "No data returned or accession not found."}
+        return {"queryAccession": accession, "error": "No data returned or  "
+                                                      "accession not found."}
 
     return {
         "queryAccession": accession,
@@ -506,9 +516,9 @@ def build_protein_record(accession: str) -> dict:
 
 def read_accessions_any_format(path: str, column_name: str) -> list:
     """
-    Attempt to read `path` as CSV (utf-8 then latin1). If invalid header, try Excel.
-    Returns sorted list of unique accession strings from column `column_name`, splitting on ";".
-    Raises ValueError if column not found.
+    Attempt to read `path` as CSV (utf-8 then latin1). If invalid header,
+    try Excel. Returns sorted list of unique accession strings from column
+    `column_name`, splitting on ";". Raises ValueError if column not found.
     """
     encodings = ["utf-8", "ISO-8859-1"]
     df = None
@@ -516,7 +526,8 @@ def read_accessions_any_format(path: str, column_name: str) -> list:
         try:
             df = pd.read_csv(path, encoding=enc, dtype=str)
             first_col = df.columns[0]
-            if isinstance(first_col, str) and first_col.startswith("PK\x03\x04"):
+            if isinstance(first_col, str) and first_col.startswith(
+                    "PK\x03\x04"):
                 raise ValueError("Looks like XLSX, switch to read_excel.")
             break
         except (UnicodeDecodeError, ValueError):
@@ -564,11 +575,13 @@ def main():
     )
     parser.add_argument(
         "--input", "-i", required=True,
-        help="Path to input CSV/Excel file containing a column of UniProt accessions."
+        help="Path to input CSV/Excel file containing a column of UniProt  "
+             "accessions."
     )
     parser.add_argument(
         "--column", "-c", default="Master Protein Accessions",
-        help='Name of the column that holds UniProt accessions (separate multiple IDs by ";"). '
+        help='Name of the column that holds UniProt accessions (separate  '
+             'multiple IDs by ";"). '
              'Default: "Master Protein Accessions".'
     )
     parser.add_argument(
@@ -639,7 +652,8 @@ def main():
         all_records.append(rec)
 
     with open(args.output, "w", encoding="utf-8") as outf:
-        json.dump({"proteins": all_records}, outf, ensure_ascii=False, indent=4)
+        json.dump({"proteins": all_records}, outf, ensure_ascii=False,
+                  indent=4)
 
     print(f"\nFinished. JSON dataset written to {args.output}")
 
