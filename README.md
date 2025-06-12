@@ -269,8 +269,8 @@ Install via:
 
 This script reads a CSV or Excel file containing UniProt accessions in a 
 specified column, deduplictes them (identifies and removes duplicate protein 
-accessions), prompts the user to process either all 
-or the first N accessions, fetches detailed annotations via the EBI Proteins 
+accessions), prompts the user to process either all or the first N 
+accessions, fetches detailed annotations via the EBI Proteins 
 API, and outputs a structured JSON file.
 1. Opens and reads the CSV/Excel file, pulling values from the --column 
    header (defaults to "Master Protein Accessions"). In doing so the script 
@@ -308,10 +308,10 @@ API, and outputs a structured JSON file.
 
     --input <input_csv>: Path to the CSV/Excel containing column with 
     accession numbers (e.g. Healthy vs Cancer methyl peptide training set.csv).
-    --column: header name (defaults to "Master Protein Accessions".
+    --column: Header name (defaults to "Master Protein Accessions".
     --output <output_json>: Path where the JSON file will be saved 
     (e.g. protein_database.json).
-    --delay: time (in seconds) between API calls (defaults to 0.1).
+    --delay: Time (in seconds) between API calls (defaults to 0.1).
 
 <ins>Example:<ins>
 
@@ -327,3 +327,77 @@ training set.csv:
 <ins>Output:<ins>
 
 A JSON file containing a list of proteins and their respective parsed data.
+
+
+## 3. Implementing the Bad Character and Good Suffix Rules for Exact Matching Algorithms
+
+<ins>Dependencies:<ins>
+
+- Python 3+
+- other libraries used are in the Python standard library
+
+### Implementing an Exact Matching Algorithm (Boyer-Moore using both Bad Character and Good Suffix Rules, including the option of the Pigeon-Hole Principle)
+#### bm_search.py
+
+This script loads a FASTA reference sequence and implements exact and 
+approximate matching algorithms. Furthermore, it also benchmarks all methods 
+and reports comparative information.
+1. Exact Matching:
+   This script runs exact matches using two separate algorithms:
+      - Naive sliding window search (one amino acid at a time).
+      - Boyer-Moore with both Bad Character (skip to next matching character 
+        when encountering a mismatch) and Good Suffix (skip to next matching 
+        motif when encountering a mismatch) heuristics. In doing so the script 
+        chooses the method (Bad Character/Good Suffix) that gives the largest 
+        shift on mismatch, ensuring that it handles overlaps within the 
+        sequence correctly.
+2. Approximate Matching (<= N mismatches) via the Pigeon-Hole Principle:
+   - During this algorithm, the pattern input by the user is (1) initially 
+     split into N+1 pieces, (2) next an exact search of each split piece is 
+     conducted using the Boyer-Moore algorithm, and (3) finally candidate 
+     alignments are verified based on Hamming distance.
+3. Benchmarking:
+   - While benchmarking the script shows: the number of hits found by each 
+     of the three algorithms (Naive/Boyer-Moore/Pigeon-Hole), the number of 
+     alignments inspected (showing how many the Boyer-Moore method skips 
+     when compared to the Naive one), and the elapsed time (formatted into 
+     minutes and seconds if more than 60s).
+
+<ins>Usage:<ins>
+
+`python3 bm_search.py <reference_fasta> <pattern> [--mismatches N] 
+[--benchmark]`
+
+    <reference_fasta>: Path to the FASTA file with the query sequence (e.g. 
+    chr1.fa).
+    <pattern>: Sequence to search for.
+    --mismatches N: The number of mismatches allowed via the Pigeon-Hole 
+    principle (defaults to 0).
+    --benchmark: Report method-specific information.
+
+<ins>Example:<ins>
+
+To run Boyer-Moore and Pigeon-Hole algorithms to match a user-specified DNA 
+sequence within Chromosome 1: 
+
+`python3 bm_search.py chr1.fa AACCGGAATTACGTA --mismatches 2 --benchmark`
+
+<ins>Output:<ins>
+
+Terminal output outlining the comparison of each method:
+- Number of hits and alignments inspected by each method,
+- Number of alignments skipped using Boyer-Moore when compared to the Naive 
+  method,
+- The elapsed time for each method (in human-readable format if above 60s),
+- A list of detailed match positions including the number of mismatches.
+
+
+    Naive (exact):          {X} hits, inspected {Y} alignments, time = {Z}
+    Boyer-Moore (exact):    {X} hits, inspected {Y} alignemnts, time = {Z}
+    
+    BM skipped {N} alignments compared to naive
+
+    Pigeon-Hole (≤{n} mm):  {X} hits, time = {Z}
+
+    Found {X} hits (pos -> mismatches):
+    {list of positions} {list of mismatches}
