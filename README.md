@@ -401,3 +401,84 @@ Terminal output outlining the comparison of each method:
 
     Found {X} hits (pos -> mismatches):
     {list of positions} {list of mismatches}
+
+
+## 4. Mini BLAST
+
+<ins>Dependencies:<ins>
+
+- Python 3+
+- biopython
+
+Install via:
+
+`conda install biopython`
+
+### Implementing a Simplified Version of BLAST
+#### mini_blast.py
+
+This script implements a simplified, configurable BLAST-style search to rank 
+a small database of protein sequences by similarity to a query sequence. The 
+user is able to choose between:
+- Ungapped Highest-Scoring Pair (HSP) Extension using k-mer word size seeding, 
+exact matches, and X-drop ungapped extension with BLOSUM62 scoring.
+- Gapped local alignment (Smith-Waterman style) using Biopython's pairwise2 
+with BLOSUM62 and affine gap penalties.
+After running, the script returns information from the query's FASTA header, 
+the mode of alignment used, and the ranking of target sequences ranging from 
+most similar to least similar based on their HSPs or local alignment scores 
+(depending on alignment method chosen).
+
+<ins>Features:<ins>
+
+1. Configurable word size (-k / --wordsize) for seeding when choosing the 
+   ungapped mode of alignment (defaults to 3).
+2. Choice of ungapped (--ungapped) and gapped (--gapped) alignment modes 
+   (defaults to ungapped).
+3. BLOSUM62 substitution matrix for scoring matches/mismatches.
+4. Affine gap penalties when using gapped mode where:
+   - gap open = -10, 
+   - gap extend = -1.
+
+<ins>Usage:<ins>
+
+`python3 mini_blast.py [--wordsize N] [--gapped | --ungapped] <query.fa> 
+<target.fa>`
+
+    --wordsize: The word size for k seeding (only used in ungapped mode, 
+    defaults to 3).
+    --gapped: The option to use ungapped HSP extension (default mode).
+    --ungapped: The option to use gapped local alignment (Smith-Waterman 
+    method).
+    <query.fa>: FASTA file containing single query sequence.
+    <target.fa>: FASTA file containing database of sequences to compare to 
+    query sequence.
+
+<ins>Example:<ins>
+
+To run ungapped alignment with default k-mer word size seeding:
+
+`python3 mini_blast.py query.fa target.fa`
+
+To run ungapped alignment with k-mer word size = 5:
+
+`python3 mini_blast.py -k 5 --ungapped query.fa target.fa`
+
+To run gapped local alignment (Smith-Waterman method):
+
+`python3 mini_blast.py --gapped query.fa target.fa`
+
+<ins>Output:<ins>
+
+Terminal output outlining the query sequence and its associated description, 
+the mode of alignment used, and the ranking of the target sequences based on 
+alignment score.
+
+
+    Query: {query sequence ID}
+    Description: {query sequence description}
+    Mode: {alignment algortihm used} {word size seed [if using --ungapped]}
+
+    Rank        Target_ID       Score       Description
+    {ranked list of database sequences and associated information}
+
