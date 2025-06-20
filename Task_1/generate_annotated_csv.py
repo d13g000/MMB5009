@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 generate_annotated_csv.py
 
@@ -19,7 +18,7 @@ Reads a filtered MS‐data CSV and produces a new CSV with these columns:
       Cancer:
       [S4]; [S5]; [S6]
       (only including samples if value != "Not Found"
-  - Abundance: a multiline field with
+  - Abundance: a multiline field with;
       Control:
       <Abundances (Grouped): Healthy>
 
