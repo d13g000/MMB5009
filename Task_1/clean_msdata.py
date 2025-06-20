@@ -13,8 +13,8 @@ applies the following filters:
      • If >= 1.5 → the row receives a "High" flag in a new column called
      "Abundance Ratio Flag".
      • If between 1.2 and 1.5 → the row receives a "Medium" flag.
-     • Any row with a missing or non-numeric abundance ratio, or ≤ 1.2,
-     is dropped.
+     • Any row with a missing or non-numeric abundance ratio, or abundance ≤
+     1.2, is dropped.
 
 Finally, the cleaned DataFrame (only rows meeting all criteria, plus the new
 "Abundance Ratio Flag" column) is written to the specified output CSV file.
