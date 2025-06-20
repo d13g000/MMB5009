@@ -1,86 +1,121 @@
-#!/usr/bin/env python3
+"""
+normalize_rpm_rpkm.py
+
+Compute RPM and RPKM values from featureCounts output.
+Follows a structured pipeline:
+  1) Parse command-line arguments and options
+  2) Count total mapped reads from BAM (excluding unmapped, secondary,
+  qcfail, duplicates)
+  3) Load featureCounts output to extract gene lengths and raw counts
+  4) Compute RPM (reads per million) and RPKM (reads per kilobase per million)
+  5) Write normalized values to output TSV
+
+Assumptions and options:
+  - Input featureCounts TSV contains header with 'Geneid' and 'Length' columns,
+    and exactly one sample count column at the end.
+  - BAM file must be coordinate-sorted and indexed.
+  - RPM and RPKM are reported with six decimal places.
+"""
+
 import argparse
 import sys
 import pysam
 
-def parse_args():
-    p = argparse.ArgumentParser(
-        description="Compute RPM and RPKM from featureCounts output."
-    )
-    p.add_argument(
-        "--counts", "-c", required=True,
-        help="featureCounts output (tab) with columns: Geneid,Chr,Start,End,"
-             "Strand,Length,<sample>"
-    )
-    p.add_argument(
-        "--bam", "-b", required=True,
-        help="Mapped BAM file (coordinate-sorted & indexed)"
-    )
-    p.add_argument(
-        "--out", "-o", required=True,
-        help="Output TSV with gene_id, length_bp, raw_counts, RPM, RPKM"
-    )
-    return p.parse_args()
-
+# -------- Step 1: Count total mapped reads ----------
 def count_mapped_reads(bam_path):
-    """Return total mapped reads (excludes unmapped, secondary, qcfail,
-    duplicates)."""
+    """
+    Counts total mapped reads in a BAM file, excluding unmapped, secondary,
+    QC failed, and duplicate reads.
+    """
     bam = pysam.AlignmentFile(bam_path, "rb")
     total = 0
-    for r in bam.fetch(until_eof=True):
-        if r.is_unmapped or r.is_secondary or r.is_qcfail or r.is_duplicate:
+    for read in bam.fetch(until_eof=True):
+        if read.is_unmapped or read.is_secondary or read.is_qcfail or read.is_duplicate:
             continue
         total += 1
     bam.close()
     return total
 
+# -------- Step 2: Load featureCounts output ----------
 def load_featurecounts(counts_path):
     """
-    Parse featureCounts output.
-    Returns:
-      gene_lengths: dict[gene_id] = length_bp (int)
-      raw_counts:   dict[gene_id] = count (int)
+    Parses featureCounts output, extracting gene lengths and raw counts.
     """
     gene_lengths = {}
-    raw_counts   = {}
+    raw_counts = {}
     with open(counts_path) as f:
         for line in f:
             if line.startswith("#"):
                 continue
             parts = line.rstrip("\n").split("\t")
-            # header line
             if parts[0] == "Geneid":
-                # find indices
-                idx_len   = parts.index("Length")
-                idx_count = len(parts) - 1
+                idx_len = parts.index("Length")
+                idx_cnt = len(parts) - 1
                 continue
             gene = parts[0]
             length = int(parts[idx_len])
-            count  = int(parts[idx_count])
+            count = int(parts[idx_cnt])
             gene_lengths[gene] = length
-            raw_counts[gene]   = count
+            raw_counts[gene] = count
     return gene_lengths, raw_counts
 
-def write_norm(gene_lengths, raw_counts, total_mapped, out_path):
-    """Compute RPM/RPKM and write to TSV."""
-    million = total_mapped / 1e6
-    with open(out_path, "w") as out:
-        out.write("gene_id\tlength_bp\traw_counts\tRPM\tRPKM\n")
-        for gene, length in gene_lengths.items():
-            cnt = raw_counts.get(gene, 0)
-            rpm  = cnt / million if million > 0 else 0
-            rpkm = rpm / (length/1000) if length > 0 else 0
-            out.write(f"{gene}\t{length}\t{cnt}\t{rpm:.6f}\t{rpkm:.6f}\n")
+# -------- Step 3: Compute RPM and RPKM ----------
+def compute_normalization(gene_lengths, raw_counts, total_mapped):
+    """
+    Computes RPM and RPKM values for each gene.
+    """
+    million_factor = total_mapped / 1e6 if total_mapped > 0 else 1
+    results = []
+    for gene, length in gene_lengths.items():
+        count = raw_counts.get(gene, 0)
+        rpm = count / million_factor if million_factor > 0 else 0
+        rpkm = rpm / (length / 1000) if length > 0 else 0
+        results.append((gene, length, count, rpm, rpkm))
+    return results
 
+# -------- Step 4: Write output TSV ----------
+def write_output(results, out_path):
+    """
+    Writes normalised counts (RPM, RPKM) to a TSV file.
+    """
+    with open(out_path, 'w') as out:
+        out.write("gene_id\tlength_bp\traw_counts\tRPM\tRPKM\n")
+        for gene, length, count, rpm, rpkm in results:
+            out.write(f"{gene}\t{length}\t{count}\t{rpm:.6f}\t{rpkm:.6f}\n")
+
+# -------- Main entry point ---------
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser(
+        description="Compute RPM and RPKM from featureCounts output.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "--counts", "-c", required=True,
+        help="featureCounts output TSV with 'Geneid' and 'Length' columns plus counts"
+    )
+    parser.add_argument(
+        "--bam", "-b", required=True,
+        help="Mapped, coordinate-sorted & indexed BAM file"
+    )
+    parser.add_argument(
+        "--out", "-o", required=True,
+        help="Output TSV with gene_id, length_bp, raw_counts, RPM, RPKM"
+    )
+    args = parser.parse_args()
+
     sys.stderr.write("Counting total mapped reads...\n")
     total = count_mapped_reads(args.bam)
     sys.stderr.write(f"Total mapped reads: {total}\n")
+
     sys.stderr.write("Parsing featureCounts output...\n")
     lengths, counts = load_featurecounts(args.counts)
-    sys.stderr.write("Computing RPM/RPKM and writing output...\n")
-    write_norm(lengths, counts, total, args.out)
+
+    sys.stderr.write("Computing RPM and RPKM...\n")
+    results = compute_normalization(lengths, counts, total)
+
+    sys.stderr.write("Writing normalised output...\n")
+    write_output(results, args.out)
+
     sys.stderr.write(f"Done. Results in {args.out}\n")
 
 if __name__ == "__main__":
