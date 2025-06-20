@@ -1,17 +1,16 @@
-#!/usr/bin/env python3
 """
 generate_protein_dataset.py
 
 Reads a CSV or Excel file of UniProt accessions from a specified column
 (default: "Master Protein Accessions"), deduplicates them, shows a summary,
-and then lets the user choose to:
+and then lets the user choose between:
+  1) Generating a dataset for ALL unique accessions
+  2) Generating a dataset for the FIRST N unique accessions (user-specified N)
+  3) Abort without generating a dataset
 
-  1) Generate dataset for ALL unique accessions
-  2) Generate dataset for the FIRST N unique accessions (user-specified N)
-  3) Abort without generating
-
-Uses the EBI Proteins API (https://www.ebi.ac.uk/proteins/api/) to fetch JSON
-for each accession, then parses fields based on that schema to extract:
+Uses the EBI Proteins API (https://www.ebi.ac.uk/proteins/api/) to fetch
+JSON-based information for each accession, then parses fields based on that
+schema to extract:
   - proteinName
   - accessions (primary + secondary)
   - gene
@@ -45,9 +44,9 @@ REQUEST_URL = "https://www.ebi.ac.uk/proteins/api/proteins/"
 
 def fetch_uniprot_entry(accession: str, sleep_between: float = 0.1) -> dict:
     """
-    Fetch a UniProt entry via EBI Proteins API in JSON format for the given
+    Fetches a UniProt entry via EBI Proteins API in JSON format for the given
     accession. Returns the parsed JSON as a Python dict; if not found or
-    error, returns {}.
+    error, returns an empty dictionary ({}).
     """
     url = REQUEST_URL + accession
     try:
@@ -68,10 +67,10 @@ def fetch_uniprot_entry(accession: str, sleep_between: float = 0.1) -> dict:
 
 def _parse_properties(raw) -> dict:
     """
-    Given a 'properties' field from EBI JSON, normalize it into a dict.
+    Given a 'properties' field from EBI JSON, normalizes it into a dictionary
     It might be:
-     - a list of dicts: [{"key": "...", "value": "..."}, ...]
-     - a dict (rare)
+     - a list of dictionaries: [{"key": "...", "value": "..."}, ...]
+     - a single dictionary (rare)
      - a semicolon-separated string "key1=value1;key2=value2"
     """
     props = {}
@@ -95,8 +94,8 @@ def _parse_properties(raw) -> dict:
 
 def parse_protein_name(entry_json: dict) -> str:
     """
-    Extract the recommended full name from entry_json.ebi. Fallback to first
-    available. EBI returns names under entry_json["protein"][
+    Extracts the recommended full name from entry_json.ebi, falling back to
+    first available. EBI returns names under entry_json["protein"][
     "recommendedName"]["fullName"] or similar.
     """
     prot_block = entry_json.get("protein", {})
@@ -114,7 +113,7 @@ def parse_protein_name(entry_json: dict) -> str:
 
 def parse_existence_info(entry_json: dict) -> dict:
     """
-    Extracts the protein existence level and general entry info:
+    Extracts the protein existence level and general entry information from:
       {
         "proteinExistence": <string>,     # e.g. "Evidence at protein level"
         "sourceDatabase": <string>,       # e.g. "Swiss-Prot"
@@ -146,7 +145,8 @@ def parse_existence_info(entry_json: dict) -> dict:
 
 def parse_accessions(entry_json: dict) -> list:
     """
-    Returns a list of dicts: { "id": accession, "type": "Primary"/"Secondary" }.
+    Returns a list of dictionaries: { "id": accession, "type":
+    "Primary"/"Secondary" }.
     EBI returns .accession (primary) and .secondaryAccessions (list).
     """
     accs = []
@@ -160,7 +160,7 @@ def parse_accessions(entry_json: dict) -> list:
 
 def parse_gene(entry_json: dict) -> list:
     """
-    Extract the first gene name. EBI has entry_json["genes"], each with
+    Extracts the first gene name. EBI has entry_json["genes"], each with
     "geneName" object.
     """
     genes = []
@@ -185,8 +185,8 @@ def parse_gene(entry_json: dict) -> list:
 
 def parse_status(entry_json: dict) -> list:
     """
-    Extract all top‐level 'comments' from the EBI JSON and normalize them into
-    a list of dicts with the right sub‐fields for each comment type.
+    Extracts all top‐level 'comments' from the EBI JSON and normalises them into
+    a list of dictionaries with the right sub‐fields for each comment type.
 
     Supported types:
       - FUNCTION             → extracts text.value and evidences
@@ -255,7 +255,7 @@ def parse_status(entry_json: dict) -> list:
 
 def parse_organism(entry_json: dict) -> dict:
     """
-    Return scientific name from entry_json["organism"]["scientificName"].
+    Returns scientific name from entry_json["organism"]["scientificName"].
     """
     org = entry_json.get("organism", {})
     taxonomy = org.get("taxonomy")
@@ -278,7 +278,7 @@ def parse_organism(entry_json: dict) -> dict:
 
 def parse_variants(entry_json: dict) -> list:
     """
-    Extract variant IDs from entry_json["features"] where type == "VARIANT".
+    Extracts variant IDs from entry_json["features"] where type == "VARIANT".
     """
     variants = []
     for feat in entry_json.get("features", []):
@@ -328,8 +328,9 @@ def parse_variants(entry_json: dict) -> list:
 
 def parse_go_annotations(entry_json: dict) -> list:
     """
-    Extract GO annotations from entry_json["dbReferences"] where type == "GO".
-    Each dbReference may have 'properties' describing term/category.
+    Extracts GO annotations from entry_json["dbReferences"] where type == "GO".
+    Each dbReference may have 'properties' describing term/category,
+    these are also extracted.
     """
     go_list = []
     for db_ref in entry_json.get("dbReferences", []):
@@ -345,7 +346,7 @@ def parse_go_annotations(entry_json: dict) -> list:
 
 def parse_associated_diseases(entry_json: dict) -> list:
     """
-    Extract associated diseases from entry_json["comments"] where category
+    Extracts associated diseases from entry_json["comments"] where category
     == "DISEASE".
     """
     diseases = []
@@ -378,7 +379,7 @@ def parse_associated_diseases(entry_json: dict) -> list:
 
 def parse_families_and_domains(entry_json: dict) -> list:
     """
-    Extract family/domain info from entry_json["dbReferences"] for relevant
+    Extracts family/domain info from entry_json["dbReferences"] for relevant
     sources.
     """
     fd_list = []
@@ -397,7 +398,7 @@ def parse_families_and_domains(entry_json: dict) -> list:
 
 def parse_sequence(entry_json: dict) -> str:
     """
-    Return canonical sequence from entry_json["sequence"]["sequence"].
+    Returns canonical sequences from entry_json["sequence"]["sequence"].
     EBI uses nested .sequence object with "sequence" key.
     """
     return entry_json.get("sequence", {}).get("sequence", "")
@@ -405,7 +406,7 @@ def parse_sequence(entry_json: dict) -> str:
 
 def parse_isoforms(entry_json: dict) -> list:
     """
-    Extract isoform info from entry_json["comments"] where category ==
+    Extracts isoform info from entry_json["comments"] where category ==
     "ALTERNATIVE PRODUCTS".
     """
     iso_list = []
@@ -435,7 +436,7 @@ def parse_isoforms(entry_json: dict) -> list:
 
 def parse_regions(entry_json: dict) -> list:
     """
-    Collect features with a start/end range from entry_json["features"].
+    Collects features with a start/end range from entry_json["features"].
     """
     regions = []
     for feat in entry_json.get("features", []):
@@ -474,7 +475,7 @@ def parse_regions(entry_json: dict) -> list:
 
 def build_protein_record(accession: str) -> dict:
     """
-    Fetch EBI JSON for 'accession' and build a record with:
+    Fetches EBI JSON for 'accession' and builds a record with:
       {
         queryAccession,
         proteinName,
@@ -516,9 +517,11 @@ def build_protein_record(accession: str) -> dict:
 
 def read_accessions_any_format(path: str, column_name: str) -> list:
     """
-    Attempt to read `path` as CSV (utf-8 then latin1). If invalid header,
-    try Excel. Returns sorted list of unique accession strings from column
-    `column_name`, splitting on ";". Raises ValueError if column not found.
+    Attempts to read `path` as CSV (utf-8 then latin1). If header is
+    invalid, Excel is tried. Returns a sorted list of unique accession
+    strings from column `column_name`, splitting on ";".
+
+    Raises ValueError if column not found.
     """
     encodings = ["utf-8", "ISO-8859-1"]
     df = None
@@ -559,7 +562,7 @@ def read_accessions_any_format(path: str, column_name: str) -> list:
 
 def format_time(seconds: float) -> str:
     """
-    Convert seconds to "Xm Ys" or "Z.Zs".
+    Converts seconds to "Xm Ys" or "Z.Zs".
     """
     if seconds < 60:
         return f"{seconds:.1f} seconds"
