@@ -14,7 +14,7 @@ For each row, this script:
   1) Fetches the full UniProt sequence for the given accession.
   2) Parses out the peptide’s start/end (e.g. 155–166).
   3) Parses out every methyl‐type modification (position, type, count).
-  4) Builds an output sequence in “pseudo‐color” form:
+  4) Builds an output sequence in “pseudo‐color” form where:
        – Residues outside the peptide → lowercase
        – Residues inside the peptide → UPPERCASE
        – If a residue inside the peptide is modified, appends "<Me1:count>",
@@ -50,6 +50,7 @@ def fetch_uniprot_sequence(accession: str) -> (str, str):
     via the UniProt REST API. Returns (header, sequence), where:
       - header is the raw FASTA header line (without the leading '>')
       - sequence is the full amino‐acid string (no line breaks).
+
     Raises an exception if something goes wrong (e.g. invalid accession or
     network error).
     """
@@ -172,12 +173,11 @@ def build_annotated_sequence(
     108:("Me2",2) }.
 
     Output rules:
-      - Residues outside pep_start..pep_end → lowercase
-      - Residues inside pep_start..pep_end → UPPERCASE
+      - Residues outside pep_start to pep_end → lowercase
+      - Residues inside pep_start to pep_end → UPPERCASE
       - If i in mods_dict AND (pep_start ≤ i ≤ pep_end), append "<{tag}:{
-      count}>"
-        immediately after the uppercase letter. Mods outside the peptide
-        window are ignored.
+      count}>" immediately after the uppercase letter.
+      - Mods outside the peptide window are ignored.
     """
     annotated = []
     for i, aa in enumerate(full_seq, start=1):
