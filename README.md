@@ -210,7 +210,9 @@ a new CSV with the following columns - based on the researchers requirements:
 
 <ins>Usage:<ins>
 
-`python3 generate_annotated_csv.py <filtered_csv> <output_csv>`
+    python3 generate_annotated_csv.py <filtered_csv> <output_csv>
+
+where:
 
     <filtered_csv>: Path to the CSV from clean_msdata.py (e.g. cleaned_msdata.csv).  
     <output_csv>: Path where the new annotated CSV will be saved (e.g. annotated_msdata.csv).  
@@ -219,7 +221,7 @@ a new CSV with the following columns - based on the researchers requirements:
 
 To create annotated_msdata.csv from cleaned_msdata.csv:
 
-`python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv`
+    python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv
 
 <ins>Output:<ins>
 
@@ -237,17 +239,20 @@ Where each row's cells contain the multiline fields as described above.
 
 ### Example Workflow
 
-1. Filter raw MS data 
+1. Filter raw MS data
 
-`python3 clean_msdata.py Healthy vs Cancer methyl peptide training set.xlsx cleaned_msdata.csv`
+
+    python3 clean_msdata.py Healthy vs Cancer methyl peptide training set.xlsx cleaned_msdata.csv
 
 2. Build annotated FASTA
 
-`python3 annotate_to_fasta.py cleaned_msdata.csv annotated_cleaned_csv.fasta`
+
+    python3 annotate_to_fasta.py cleaned_msdata.csv annotated_cleaned_csv.fasta
 
 3. Generate final annotated CSV
 
-`python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv`
+
+    python3 generate_annotated_csv.py cleaned_msdata.csv annotated_msdata.csv
 
 
 
@@ -300,11 +305,13 @@ API, and outputs a structured JSON file.
 
 <ins>Usage:<ins>
 
-`python3 generate_protein_dataset.py \
-  --input <input_csv> \
-  --column "Master Protein Accessions" \
-  --output <output_json> \
-  [--delay 0.1]`
+    python3 generate_protein_dataset.py \
+    --input <input_csv> \
+    --column "Master Protein Accessions" \
+    --output <output_json> \
+    [--delay 0.1]
+
+where: 
 
     --input <input_csv>: Path to the CSV/Excel containing column with 
     accession numbers (e.g. Healthy vs Cancer methyl peptide training set.csv).
@@ -318,11 +325,11 @@ API, and outputs a structured JSON file.
 To create protein_dataset.json from Healthy vs Cancer methyl peptide 
 training set.csv:
 
-`python3 generate_protein_dataset.py \
+    python3 generate_protein_dataset.py \
     --input Healthy vs Cancer methyl peptide training set.csv \
     --column "Master Protein Accessions" \
     --output protein_dataset.json \
-    --delay 0.1`
+    --delay 0.1
 
 <ins>Output:<ins>
 
@@ -365,8 +372,7 @@ and reports comparative information.
 
 <ins>Usage:<ins>
 
-`python3 bm_search.py <reference_fasta> <pattern> [--mismatches N] 
-[--benchmark]`
+    python3 bm_search.py <reference_fasta> <pattern> [--mismatches N]   [--benchmark]
 
     <reference_fasta>: Path to the FASTA file with the query sequence (e.g. 
     chr1.fa).
@@ -380,7 +386,7 @@ and reports comparative information.
 To run Boyer-Moore and Pigeon-Hole algorithms to match a user-specified DNA 
 sequence within Chromosome 1: 
 
-`python3 bm_search.py chr1.fa AACCGGAATTACGTA --mismatches 2 --benchmark`
+    python3 bm_search.py chr1.fa AACCGGAATTACGTA --mismatches 2 --benchmark
 
 <ins>Output:<ins>
 
@@ -442,8 +448,7 @@ most similar to least similar based on their HSPs or local alignment scores
 
 <ins>Usage:<ins>
 
-`python3 mini_blast.py [--wordsize N] [--gapped | --ungapped] <query.fa> 
-<target.fa>`
+    python3 mini_blast.py [--wordsize N] [--gapped | --ungapped]  <query.fa>  <target.fa>
 
     --wordsize: The word size for k seeding (only used in ungapped mode, 
     defaults to 3).
@@ -458,15 +463,15 @@ most similar to least similar based on their HSPs or local alignment scores
 
 To run ungapped alignment with default k-mer word size seeding:
 
-`python3 mini_blast.py query.fa target.fa`
+    python3 mini_blast.py query.fa target.fa
 
 To run ungapped alignment with k-mer word size = 5:
 
-`python3 mini_blast.py -k 5 --ungapped query.fa target.fa`
+    python3 mini_blast.py -k 5 --ungapped query.fa target.fa
 
 To run gapped local alignment (Smith-Waterman method):
 
-`python3 mini_blast.py --gapped query.fa target.fa`
+    python3 mini_blast.py --gapped query.fa target.fa
 
 <ins>Output:<ins>
 
@@ -519,10 +524,12 @@ and outputs a TSV table with normalisation metrics.
 
 <ins>Usage:<ins>
 
-`python3 normalise_rpm_rpkm.py \
+    python3 normalise_rpm_rpkm.py \
     --counts path/to/counts/file.txt \
     --bam    path/to/alignments/file.bam \
-    --out    path/to/output/file.tsv`
+    --out    path/to/output/file.tsv
+
+where:
 
     -c, --counts: featureCounts output TSV file (having format shown in 2.).
     -m, --bam: Mapped BAM file (coordinate-sorted and indexed).
@@ -530,10 +537,10 @@ and outputs a TSV table with normalisation metrics.
 
 <ins>Example:<ins>
 
-`python3 normalise_rpm_rpkm.py \
+    python3 normalise_rpm_rpkm.py \
     --counts gene_counts_chr21_22.txt \
     --bam    sample_chr21_22_SE_mapped.bam \
-    --out    gene_norm_chr21_22.tsv`
+    --out    gene_norm_chr21_22.tsv
 
 <ins>Output:<ins>
 
