@@ -8,10 +8,10 @@ Usage:
 Description:
     - Loads a reference genome FASTA file into memory.
     - Normalizes text and pattern to uppercase.
-    - Implements Boyer–Moore exact matching with Bad-Character and
+    - Implements Boyer–Moore (BM) exact matching with Bad-Character and
     Good-Suffix heuristics, always choosing the larger of the two shifts on
-    mismatch, and counts how many alignments
-      it actually inspects (to compare against naive).
+    mismatch, and counts how many alignments it actually inspects (to
+    compare against naive).
     - Implements a naive sliding-window matcher (counts its alignments too).
     - Wraps Boyer–Moore in a Pigeon-Hole strategy to allow up to N mismatches.
     - Benchmarks naive, Boyer–Moore, and Pigeon-Hole (when mismatches > 0).
@@ -24,7 +24,7 @@ import time
 import argparse
 
 def load_fasta(filepath):
-    """Read FASTA, concatenate sequence lines, uppercase."""
+    """Reads FASTA, concatenates sequence lines, formats to uppercase."""
     seq = []
     with open(filepath) as f:
         for line in f:
@@ -37,12 +37,30 @@ def load_fasta(filepath):
 ############################
 
 def build_bad_char_table(pat):
+    """
+    Constructs bad character shift table for BM string search algorithm.
+
+    This table maps each possible character (by its ASCII value) to the index
+    of its last occurrence with the pattern. Characters not present in the
+    pattern are assigned a default value of -1.
+    """
     table = {chr(i): -1 for i in range(256)}
     for i, ch in enumerate(pat):
         table[ch] = i
     return table
 
 def build_good_suffix_tables(pat):
+    """
+    Builds the good suffix shift and border shift tables for the BM algorithm.
+
+    The good suffix rule allows the search window to skip sections of text
+    when a suffix of the pattern matches but a mismatch occurs earlier. Two
+    tables are computed:
+    - good_suffix: for each position i in the pattern, this table gives the
+      shift distance when a mismatch occurs
+    - border_shift: for each possible shift length j, this table gives the
+      fallback shift when no matching suffix applies
+    """
     m = len(pat)
     suff = [0] * m
     suff[m-1] = m
@@ -75,7 +93,7 @@ def build_good_suffix_tables(pat):
 
 def boyer_moore_search(text, pat):
     """
-    Returns (matches, alignments_inspected):
+    Returns (matches, alignments_inspected) for BM search:
       - matches: list of match positions
       - alignments_inspected: how many shifts s were actually tested
     """
@@ -109,7 +127,7 @@ def boyer_moore_search(text, pat):
 
 def naive_search(text, pat):
     """
-    Returns (matches, alignments_inspected):
+    Returns (matches, alignments_inspected) for naive search:
       - matches: list of match positions
       - alignments_inspected: always n-m+1 (or n+1 if m==0)
     """
@@ -129,6 +147,11 @@ def naive_search(text, pat):
 #######################################
 
 def pigeonhole_search(text, pat, max_mm):
+    """
+    Performs approximate string matching using the pigeonhole principle and
+    BM sub-searches (searches for all occurrence of 'pat' in 'text' allowing
+    up to 'max_mm' mismatches).
+    """
     n, m = len(text), len(pat)
     if m == 0:
         return [(i,0) for i in range(n+1)]
@@ -166,7 +189,7 @@ def pigeonhole_search(text, pat, max_mm):
 #############################
 
 def format_time(t):
-    """If t>60s, render as Hh Mm Ss; else as 'X.XXXX s'."""
+    """If time > 60s, render as Hh Mm Ss; else as 'X.XXXXs'."""
     if t > 60:
         hrs = int(t // 3600)
         rem = t % 3600
