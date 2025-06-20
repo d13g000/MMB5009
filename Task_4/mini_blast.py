@@ -1,24 +1,23 @@
-#!/usr/bin/env python3
 """
 mini_blast.py
 
-A simplified, ungapped BLAST-like search for protein sequences.
+A simplified, BLAST-like search for protein sequences.
 Follows Pertsemlidis et al. (2001) “Having a BLAST with bioinformatics (and
 avoiding BLASTphemy)”. Steps implemented:
   1) Read input FASTA files
   2) Define a substitution scoring matrix (BLOSUM62)
-  3) Seed: scan for all exact k-mer matches (k=3)
-  4) Extend each seed ungapped in both directions, accumulate score
+  3) Seed: scan for all exact k-mer matches
+  4) Extend each seed in both directions, accumulate score
   5) Record the best High‐scoring Segment Pair (HSP) per target
   6) Rank targets by HSP score
   7) Output ranking and print query header (to see its annotation/function)
 
 Simplifying assumptions:
-  - Configurable word size (-k / --wordsize, default=3) and we require exact
-  k-mer matches to seed.
-  - choice of ungapped (default) or gapped alignment (--ungapped / --gapped)
-  - Use full BLOSUM62 for scoring matches/mismatches.
-  - Threshold for reporting any HSP is simply > 0.
+  - Configurable k-mer/word size (-k / --wordsize, default=3) required for exact
+  matching to seed.
+  - Choice of ungapped (default) or gapped alignment (--ungapped / --gapped)
+  - Uses full BLOSUM62 for scoring matches/mismatches.
+  - Threshold for reporting any HSP is > 0.
 """
 
 import argparse
@@ -28,14 +27,19 @@ from Bio.Align import substitution_matrices
 
 # -------- Step 1: Read sequences ----------
 def read_fasta(filename):
-    """Read one-sequence FASTA and return (header, seq) or list of SeqRecord."""
+    """
+    Reads one-sequence FASTA and returns (header, seq) or list of
+    SeqRecord.
+    """
     return list(SeqIO.parse(filename, "fasta"))
 
 # -------- Step 2: Load scoring matrix ----------
 blosum62 = substitution_matrices.load("BLOSUM62")
 
 def score_pair(a, b):
-    """Return BLOSUM62 score for a pair of residues (or -4 if undefined)."""
+    """
+    Returns BLOSUM62 score for a pair of residues (or -4 if undefined).
+    """
     key = (a, b)
     if key not in blosum62:
         key = (b, a)
@@ -43,7 +47,10 @@ def score_pair(a, b):
 
 # -------- Step 3 & 4: Seed and extend ----------
 def find_kmer_positions(seq, k):
-    """Return dict mapping each k-mer to list of start positions in seq."""
+    """
+    Returns a dictionary mapping each k-mer to list of start positions in the
+    sequence.
+    """
     d = defaultdict(list)
     for i in range(len(seq) - k + 1):
         word = str(seq[i:i+k])
@@ -53,8 +60,9 @@ def find_kmer_positions(seq, k):
 def extend_hsp_ungapped(query, target, qpos, tpos, k):
     """
     Ungapped extension of a seed at (qpos, tpos) of length k.
-    X-drop style: stop extending when cumulative score < 0.
-    Returns the best score found.
+
+    X-drop style: stops extending when cumulative score < 0 and returns the
+    best score found.
     """
     # initial k-mer score
     cur = sum(score_pair(query[qpos + i], target[tpos + i]) for i in range(k))
@@ -82,7 +90,9 @@ def extend_hsp_ungapped(query, target, qpos, tpos, k):
     return best
 
 def ungapped_blast(query_seq, target_seq, k):
-    """Compute best ungapped HSP score between query and target."""
+    """
+    Computes the best ungapped HSP score between query and target.
+    """
     best_score = 0
     tgt_index = find_kmer_positions(target_seq, k)
     for i in range(len(query_seq) - k + 1):
@@ -95,8 +105,10 @@ def ungapped_blast(query_seq, target_seq, k):
 
 def gapped_blast(query_seq, target_seq):
     """
-    Compute best gapped, local alignment score using BLOSUM62 and affine gaps.
-    Gap open = -10, gap extend = -1
+    Computes the best gapped, local alignment score using BLOSUM62 and affine
+    gaps where:
+    - gap open = -10
+    - gap extend = -1
     """
     alignments = pairwise2.align.localds(
         query_seq,
